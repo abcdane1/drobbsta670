@@ -13,7 +13,7 @@
 
 
 lm_sum<-function(y,x){
-  fit<-lm(y~x)
+  fit<-lm(y~x^2)
   return(summary(fit))
 }
 
