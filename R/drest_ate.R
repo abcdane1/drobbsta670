@@ -3,7 +3,7 @@
 #' This package provides a doubly robust point estimate and confidence interval for the average treatment effect (ATE) with binary treatment. The outcome models are assumed to be linear, where
 #' the outcome for those under treatment 1 and the outcome for those under treatment 0 are regressed against user specified subsets of non-treatment covariates. The propensity score is modeled using logistic regression, 
 #' where treatment status is regressed against a subset of non-treatment user-specified covariates. For confidence intervals, the user has the option to specify whether they wish to have the asymptotic interval, 
-#' the basic (or empirical) bootstrap, or the percentile bootstrap.
+#' or non-parametric bootstrap intervals, which include the basic/empirical, percentile, and bias corrected and accelerated (BCa) intervals.
 #' 
 #'
 #' @param trt  A vector of binary treatments.
@@ -12,10 +12,15 @@
 #' @param var0 The numbers or names of columns to be included in outcome model for treatment 0. If `var0` is not specified, `var1=var0`.
 #' @param yout A vector of outcome variables.
 #' @param varp The numbers or names of columns to be included in propensity score model. If `varp` is not specified, `var1=varp`. 
-#' 
+#' @param ci The choice of confidence interval. Possible values are the `asymptotic` (the default) interval, and non-parametric bootstraps `basic`, 
+#' `percentile`, and `bca` interval. If `ci=asymptotic`, the se reported is the asymptotic approximation. If `ci=basic`, the se reported is of the bootstrapped sample.
+#' @param level The confidence level of the confidence interval - default is 95%.
+#' @param B The number of bootstrap samples - default is 1000. 
 #'
 #' @return The return value is an object of...
 #'
+#' @references Reference
+#' 
 #' @examples
 #'
 #' @export
@@ -63,6 +68,7 @@ drest_ate<-function(trt,x,var1,yout,var0=var1,varp=var1,ci="asymptotic",level=.9
     return(list(yhatout1,yhatout0,ps,drdelta))
   }
   
+  names<-c("Estimate","StdError","Lower","Upper")
   
   #asymptotic variance and CI
   if (ci=="asymptotic"){
@@ -75,7 +81,10 @@ drest_ate<-function(trt,x,var1,yout,var0=var1,varp=var1,ci="asymptotic",level=.9
     meansq<-sum((varterm1-drdelta)^2)
     se<-sqrt(meansq/length(yout)^2)
     ci<-drdelta+qnorm((1-level)/2+level)*c(-se,se)
-    return(c(drdelta,se,ci))}
+    output<-c(drdelta,se,ci)
+    names(output)<-names
+    return(output)
+  }
   
   #basic bootstrap  
   if (ci=="basic"){
@@ -94,7 +103,9 @@ drest_ate<-function(trt,x,var1,yout,var0=var1,varp=var1,ci="asymptotic",level=.9
     if(nacount/B>.1){
       warning(paste("Unreliable interval: model cannot be fit to",nacount,"bootstrap samples, which is more than 10% of the tried samples"))
     }
-    return(c(drdelta,se,ci))}
+    output<-c(drdelta,se,ci)
+    names(output)<-names
+    return(output)}
   
   #percentile boot 
   if (ci=="percentile"){
@@ -113,7 +124,9 @@ drest_ate<-function(trt,x,var1,yout,var0=var1,varp=var1,ci="asymptotic",level=.9
     if(nacount/B>.1){
       warning(paste("Unreliable interval: model cannot be fit to",nacount,"bootstrap samples, which is more than 10% of the tried samples"))
     }
-    return(c(drdelta,ci))}
+    output<-c(drdelta,NA,ci)
+    names(output)<-names
+    return(output)}
   
   #bca
   if (ci=="bca"){
@@ -148,5 +161,7 @@ drest_ate<-function(trt,x,var1,yout,var0=var1,varp=var1,ci="asymptotic",level=.9
     if(nacount/B>.1){
       warning(paste("Unreliable interval: model cannot be fit to",nacount,"bootstrap samples, which is more than 10% of the tried samples"))
     }
-    return(c(drdelta,ci))}
+    output<-c(drdelta,NA,ci)
+    names(output)<-names
+    return(output)}
 }
