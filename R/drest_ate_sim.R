@@ -3,24 +3,28 @@
 #' This function provides a simulation study to assess coverage of confidence intervals for the doubly robust estimator of ATE under various sample sizes 
 #' and single model misspecification options (discussed below). The confidence intervals assessed are the asymptotic confidence interval and 
 #' non-parametric bootstrap confidence intervals: basic/empirical, percentile, and BCa. The first models with the BCa interval excluded reproduce the results in (paper)
-#'  
+#' This function allows for parallelization, where you can specify the number of parallel tasks and number of iterations for each task. 
 #'
+#' @param rounds The number of parallel operations to be performed. Default is 10.
 #' @param model   A value 1-7 representing the choice of misspecification model. The models are discussed in details.
 #' @param sample  A positive integer sample size (greater than 100 recommended) for the simulated data.
-#' @param iterations The number of times that the simulation is run. Default is 1000.
+#' @param iterations The number of times that each parallel operation is run. Default is 100, so total simulations is 1000.
 #' @param level A value between 0 and 1 which gives confidence level of the confidence interval - default is .95. 
 #' @param boot If TRUE return full bootstrap table for simulated data. 
+#' @param B A positive integer numbers of bootstrap samples - default is 1000.
 #'
 #' @return The return value table of the form 
 #' 
 #' @references Reference
 #'
-#' @examples
-#'
 #' @export
+#' 
+#' 
+#' 
 
-drest_ate_sim<-function(model,sample,iterations=1000,level=.95,boot=FALSE,B=B){
-  set.seed(010590)
+drest_ate_sim<-function(rounds,model,sample,iterations=100,level=.95,boot=FALSE,B=1000){
+
+drest_ate_simsub<-function(rounds,model,sample,iterations,level,boot,B){
   if(model==1){
     #model 1 (both correct)
     xsimm<-c(1,3)
@@ -43,7 +47,6 @@ drest_ate_sim<-function(model,sample,iterations=1000,level=.95,boot=FALSE,B=B){
     xsimm<-4
     pssim<-c(1,3,5)
   }
-  
   
   drest<-rep(0,iterations)
   acm<-rep(0,iterations)
@@ -77,8 +80,7 @@ drest_ate_sim<-function(model,sample,iterations=1000,level=.95,boot=FALSE,B=B){
         estim_bca<-try(drobbsta670::drest_ate(trtsim,xmatsim,xsimm,outsim,varp=pssim,ci="bca",level=level,B=B))
         cov_bas[i]<-ifelse(0>=estim_bas[3] & 0<=estim_bas[4],1,0)
         cov_perc[i]<-ifelse(0>=estim_perc[3] & 0<=estim_perc[4],1,0)
-        cov_bca[i]<-ifelse(0>=estim_bca[3] & 0<=estim_bca[4],1,0)}
-    }}
+        cov_bca[i]<-ifelse(0>=estim_bca[3] & 0<=estim_bca[4],1,0)}}}
   
   if (model==4|model==5){
     for (i in 1:iterations){
@@ -104,9 +106,7 @@ drest_ate_sim<-function(model,sample,iterations=1000,level=.95,boot=FALSE,B=B){
         estim_bca<-try(drobbsta670::drest_ate(trtsim,xmatsim,xsimm,outsim,varp=pssim,ci="bca",level=level,B=B))
         cov_bas[i]<-ifelse(0>=estim_bas[3] & 0<=estim_bas[4],1,0)
         cov_perc[i]<-ifelse(0>=estim_perc[3] & 0<=estim_perc[4],1,0)
-        cov_bca[i]<-ifelse(0>=estim_bca[3] & 0<=estim_bca[4],1,0)}
-      
-    }}
+        cov_bca[i]<-ifelse(0>=estim_bca[3] & 0<=estim_bca[4],1,0)}}}
   
   
   #add variable, with x5 only, vs sin(x_5)
@@ -136,41 +136,59 @@ drest_ate_sim<-function(model,sample,iterations=1000,level=.95,boot=FALSE,B=B){
         estim_bca<-try(drobbsta670::drest_ate(trtsim,xmatsim,xsimm,outsim,varp=pssim,ci="bca",level=level,B=B))
         cov_bas[i]<-ifelse(0>=estim_bas[3] & 0<=estim_bas[4],1,0)
         cov_perc[i]<-ifelse(0>=estim_perc[3] & 0<=estim_perc[4],1,0)
-        cov_bca[i]<-ifelse(0>=estim_bca[3] & 0<=estim_bca[4],1,0)}
-      
-    }}
-  
-  bias<-mean(drest,na.rm=TRUE)
-  seacm<-mean(acm,na.rm=TRUE)
-  sdout<-sd(drest,na.rm=TRUE)
-  sesd<-seacm/sdout
-  pcov_as<-100*mean(cov_as,na.rm=TRUE)
-  cov_as<-cov_as[!is.na(cov_as)]
-  ci_as<-100*prop.test(sum(cov_as),length(cov_as),correct=FALSE)$conf.int
+        cov_bca[i]<-ifelse(0>=estim_bca[3] & 0<=estim_bca[4],1,0)}}}
   
   if(boot==TRUE){
-    pcov_bas<-100*mean(cov_bas,na.rm=TRUE)
-    pcov_perc<-100*mean(cov_perc,na.rm=TRUE)
-    pcov_bca<-100*mean(cov_bca,na.rm=TRUE)
-    
-    cov_bas<-cov_bas[!is.na(cov_bas)]
-    cov_perc<-cov_perc[!is.na(cov_perc)]
-    cov_bca<-cov_bca[!is.na(cov_bca)]
-    
-    ci_bas<-100*prop.test(sum(cov_bas),length(cov_bas),correct=FALSE)$conf.int
-    ci_perc<-100*prop.test(sum(cov_perc),length(cov_perc),correct=FALSE)$conf.int
-    ci_bca<-100*prop.test(sum(cov_bca),length(cov_bca),correct=FALSE)$conf.int}
+    results<-list(drest,acm,cov_as,cov_bas,cov_perc,cov_bca)
+    return(results)}
   
-  #}
-  #return(c(model,sample,bias,seacm,sdout,sesd,pcov_as,pcov_bas,pcov_perc))
-  names<-c("Model","SampleSize","Bias","SE_ACM","SD","SE_ACM/SD","CovSE_ACM","CovSE_ACMLB","CovSE_ACMUB",
-           "CovBas","CovBasLB","CovBasUB","CovPerc","CovPercLB","CovPercUB","CovBCa","CovBCaLB","CovBCaUB")
-  results<-c(model,sample,bias,seacm,sdout,sesd,pcov_as,ci_as)
-  names(results)<-names[1:9]
-  if(boot==TRUE){
-    results<-c(model,sample,bias,seacm,sdout,sesd,pcov_as,ci_as,pcov_bas,ci_bas,
-               pcov_perc,ci_perc,pcov_bca,ci_bca)
-    names(results)<-names}
+  results<-list(drest,acm,cov_as)
+  return(results)}
+
+RNGkind("L'Ecuyer-CMRG")
+set.seed(010590) #fixed output
+l<-parallel::mcmapply(drest_ate_simsub,rounds=1:rounds,MoreArgs=list(model=model,sample=sample,iterations=iterations,
+                                                                     boot=boot,level=level,B=B))
+
+#final listings
+drestfin<-unlist(l[1,])
+acmfin<-unlist(l[2,])
+covfin_as<-unlist(l[3,])
+
+bias<-mean(drestfin,na.rm=TRUE)
+seacm<-mean(acmfin,na.rm=TRUE)
+sdout<-sd(drestfin,na.rm=TRUE)
+sesd<-seacm/sdout
+pcov_as<-100*mean(covfin_as,na.rm=TRUE)
+covfin_as<-covfin_as[!is.na(covfin_as)]
+ci_as<-100*prop.test(sum(covfin_as),length(covfin_as),correct=FALSE)$conf.int
+
+if(boot==TRUE){
+  covfin_bas<-unlist(l[4,])
+  covfin_perc<-unlist(l[5,])
+  covfin_bca<-unlist(l[6,])
   
-  return(round(results,3))
+  pcov_bas<-100*mean(covfin_bas,na.rm=TRUE)
+  pcov_perc<-100*mean(covfin_perc,na.rm=TRUE)
+  pcov_bca<-100*mean(covfin_bca,na.rm=TRUE)
+  
+  cov_bas<-covfin_bas[!is.na(covfin_bas)]
+  cov_perc<-covfin_perc[!is.na(covfin_perc)]
+  cov_bca<-covfin_bca[!is.na(covfin_bca)]
+  
+  ci_bas<-100*prop.test(sum(cov_bas),length(cov_bas),correct=FALSE)$conf.int
+  ci_perc<-100*prop.test(sum(cov_perc),length(cov_perc),correct=FALSE)$conf.int
+  ci_bca<-100*prop.test(sum(cov_bca),length(cov_bca),correct=FALSE)$conf.int}
+
+names<-c("Model","SampleSize","Bias","SE_ACM","SD","SE_ACM/SD","CovSE_ACM","CovSE_ACMLB","CovSE_ACMUB",
+         "CovBas","CovBasLB","CovBasUB","CovPerc","CovPercLB","CovPercUB","CovBCa","CovBCaLB","CovBCaUB")
+results<-c(model,sample,bias,seacm,sdout,sesd,pcov_as,ci_as)
+names(results)<-names[1:9]
+
+if(boot==TRUE){
+  results<-c(model,sample,bias,seacm,sdout,sesd,pcov_as,ci_as,pcov_bas,ci_bas,
+             pcov_perc,ci_perc,pcov_bca,ci_bca)
+  names(results)<-names}
+
+return(round(results,3))
 }
