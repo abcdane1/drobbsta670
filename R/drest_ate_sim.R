@@ -5,23 +5,25 @@
 #' non-parametric bootstrap confidence intervals: basic/empirical, percentile, and BCa. The first models with the BCa interval excluded reproduce the results in (paper)
 #' This function allows for parallelization, where you can specify the number of parallel tasks and number of iterations for each task. 
 #'
-#' @param rounds The number of parallel operations to be performed. Default is 10.
+#' @param rounds The number of parallel operations to be performed - 10 is suggested.
 #' @param model   A value 1-7 representing the choice of misspecification model. The models are discussed in details.
 #' @param sample  A positive integer sample size (greater than 100 recommended) for the simulated data.
-#' @param iterations The number of times that each parallel operation is run. Default is 100, so total simulations is 1000.
+#' @param iterations The number of times that each parallel operation is run. Default is 100, so suggested simulations is 1000.
 #' @param level A value between 0 and 1 which gives confidence level of the confidence interval - default is .95. 
 #' @param boot If TRUE return full bootstrap table for simulated data. 
 #' @param B A positive integer numbers of bootstrap samples - default is 1000.
 #'
 #' @return The return value table of the form 
 #' 
+#' @importFrom stats lm glm qnorm pnorm prop.test quantile rexp runif sd rnorm
+#' @importFrom parallel mcmapply
+#' 
 #' @references Reference
-#'
+#' 
+#' 
 #' @export
 #' 
 #' 
-#' 
-
 drest_ate_sim<-function(rounds,model,sample,iterations=100,level=.95,boot=FALSE,B=1000){
 
 drest_ate_simsub<-function(rounds,model,sample,iterations,level,boot,B){
