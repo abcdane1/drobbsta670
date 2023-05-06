@@ -24,7 +24,7 @@
 #' @export
 #' 
 #' 
-drest_ate_sim<-function(rounds,model,sample,iterations=100,level=.95,boot=FALSE,B=1000){
+drest_ate_sim<-function(rounds,model,sample,iterations=100,level=.95,boot=FALSE,B=1000,nc=4){
 
 drest_ate_simsub<-function(rounds,model,sample,iterations,level,boot,B){
   if(model==1){
@@ -121,7 +121,7 @@ drest_ate_simsub<-function(rounds,model,sample,iterations,level,boot,B){
       x4<-rnorm(sample) #error 
       #added term
       x5<-rnorm(sample)
-      lcpssim<-1.5+x1-2*x2+x3
+      lcpssim<-1.5+x1-2*x2+x3-1.5*sin(x5)
       psvsim<-1/(1+exp(-lcpssim))
       rsim<-runif(sample,0,1)
       trtsim<-ifelse(psvsim+rsim<.91,1,0)
@@ -148,9 +148,9 @@ drest_ate_simsub<-function(rounds,model,sample,iterations,level,boot,B){
   return(results)}
 
 RNGkind("L'Ecuyer-CMRG")
-set.seed(010590) #fixed output
+set.seed(010590) #fixed output 
 l<-parallel::mcmapply(drest_ate_simsub,rounds=1:rounds,MoreArgs=list(model=model,sample=sample,iterations=iterations,
-                                                                     boot=boot,level=level,B=B))
+                                                                           boot=boot,level=level,B=B),mc.cores=nc)
 
 #final listings
 drestfin<-unlist(l[1,])
