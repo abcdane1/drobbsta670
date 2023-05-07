@@ -7,11 +7,12 @@
 #'
 #' @param model   A value 1-7 representing the choice of misspecification model. The models are discussed in details.
 #' @param sample  A positive integer sample size (greater than 100 recommended) for the simulated data.
-#' @param iterations The number of times that each parallel operation is run. Default is 100.
-#' @param rounds The number of parallel operations to be performed. If `round=1` as default, there will be no parallelization.
+#' @param iterations The number of times that each parallel operation is run. Default is 100. 
+#' @param rounds The number of parallel operations to be performed. If `round=1` as default, there will be no parallelization (not recommended, especially for `boot=TRUE`). 
+#' The total number of simulations will be `iterations` times `rounds`.
 #' @param level A value between 0 and 1 which gives confidence level of the confidence interval - default is .95. 
 #' @param boot If TRUE return full bootstrap table for simulated data. 
-#' @param B A positive integer numbers of bootstrap samples - default is 1000.
+#' @param B A positive integer numbers of bootstrap samples - default is 1000. 
 #' @param nc Number of cores for parallelization - default is 4. If `nc=1`, there will be no parallelization.
 #'
 #' @return The return value table of the form 
