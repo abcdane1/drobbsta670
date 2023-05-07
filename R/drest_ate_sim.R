@@ -80,7 +80,7 @@ drest_ate_simsub<-function(model,sample,iterations,rounds,level,boot,B){
       trtsim<-ifelse(psvsim+rsim<.91,1,0)
       #true outcome model
       outsim<-x1+x3+2*x4
-      #data
+      #covariates
       xmatsim<-cbind(x1,x2,x3)
       #estimates as in drest_ate
       estim_as<-drobbsta670::drest_ate(trtsim,xmatsim,xsimm,outsim,varp=pssim,level=level)
