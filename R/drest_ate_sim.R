@@ -5,10 +5,10 @@
 #' non-parametric bootstrap confidence intervals: basic/empirical, percentile, and BCa. The first models with the BCa interval excluded reproduce the results in (paper)
 #' This function allows for parallelization, where you can specify the number of parallel tasks and number of iterations for each task. 
 #'
-#' @param rounds The number of parallel operations to be performed.
 #' @param model   A value 1-7 representing the choice of misspecification model. The models are discussed in details.
 #' @param sample  A positive integer sample size (greater than 100 recommended) for the simulated data.
 #' @param iterations The number of times that each parallel operation is run. Default is 100.
+#' @param rounds The number of parallel operations to be performed. If `round=1` as default, there will be no parallelization.
 #' @param level A value between 0 and 1 which gives confidence level of the confidence interval - default is .95. 
 #' @param boot If TRUE return full bootstrap table for simulated data. 
 #' @param B A positive integer numbers of bootstrap samples - default is 1000.
@@ -25,10 +25,10 @@
 #' @export
 #' 
 #' 
-drest_ate_sim<-function(rounds,model,sample,iterations=100,level=.95,boot=FALSE,B=1000,nc=4){
+drest_ate_sim<-function(model,sample,iterations=100,rounds=1,level=.95,boot=FALSE,B=1000,nc=4){
 
 #subfunction to choose model misspecification
-drest_ate_simsub<-function(rounds,model,sample,iterations,level,boot,B){
+drest_ate_simsub<-function(model,sample,iterations,rounds,level,boot,B){
   if(model==1){
     #model 1 (both correct)
     xsimm<-c(1,3)
@@ -170,7 +170,7 @@ drest_ate_simsub<-function(rounds,model,sample,iterations,level,boot,B){
 
 #parallel operations 
 RNGkind("L'Ecuyer-CMRG")
-set.seed(010590) #fixed output 
+set.seed(010590) #fixed output if fixed number of cores  
 l<-parallel::mcmapply(drest_ate_simsub,rounds=1:rounds,MoreArgs=list(model=model,sample=sample,iterations=iterations,
                                                                            boot=boot,level=level,B=B),mc.cores=nc)
 
