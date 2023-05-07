@@ -1,6 +1,6 @@
 #' Doubly Robust Estimation of ATE
 #'
-#' This package provides a doubly robust point estimate and confidence interval for the average treatment effect (ATE) with binary treatment. The outcome models are assumed to be linear, where
+#' This function provides a doubly robust point estimate and confidence interval for the average treatment effect (ATE) with binary treatment. The outcome models are assumed to be linear, where
 #' the outcome for those under treatment 1 and the outcome for those under treatment 0 are regressed against user specified subsets of non-treatment covariates. The propensity score is modeled using logistic regression, 
 #' where treatment status is regressed against a subset of non-treatment user-specified covariates. For confidence intervals, the user has the option to specify whether they wish to have the asymptotic interval, 
 #' or non-parametric bootstrap intervals, which include the basic/empirical, percentile, and bias corrected and accelerated (BCa) intervals.
