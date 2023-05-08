@@ -1,17 +1,17 @@
 #' Doubly Robust Estimation of ATE: Simulation
 #'
 #' This function provides a simulation study to assess coverage of confidence intervals for the doubly robust estimator of ATE under various sample sizes
-#' and single model misspecification options (discussed below). The confidence intervals assessed are the asymptotic confidence interval and
+#' and single model misspecification options. The confidence intervals assessed are the asymptotic confidence interval and
 #' non-parametric bootstrap confidence intervals: basic/empirical, percentile, and BCa. The first 3 Scenarios with the BCa interval excluded reproduce the results in Funk et al. 2011
 #' and the remaining models are discussed in documentation by Isenberg accompanying this package. This function allows for parallelization, where you can specify the number of parallel tasks and number of iterations for each task.
-#'s
+#'
 #' @param model   A value 1-7 representing the choice of misspecification model. The models are discussed in accompanying documentation by Isenberg.
 #' @param sample  A positive integer sample size (greater than 100 recommended) for the simulated data.
 #' @param iterations The number of times that each parallel operation is run. Default is 100.
 #' @param rounds The number of parallel operations to be performed. If `round=1` as default, there will be no parallelization (not recommended, especially for `boot=TRUE`).
 #' The total number of simulations will be `iterations` times `rounds`.
 #' @param level A value between 0 and 1 which gives confidence level of the confidence interval. Default is .95.
-#' @param boot If TRUE returns full bootstrap table for simulated data. Default is FALSE.
+#' @param boot If TRUE returns full bootstrap vector for simulated data. Default is FALSE.
 #' @param B A positive integer number of bootstrap samples. Default is 1000.
 #' @param nc Number of cores for parallelization. Default is 1. Specify a value `nc > 1` for parallelization.
 #' @param W IF TRUE, it allows for parallel computing on Windows computers as well. Default is FALSE, and parallelization requires
