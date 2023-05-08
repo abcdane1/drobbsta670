@@ -2,25 +2,28 @@
 #'
 #' This function provides a simulation study to assess coverage of confidence intervals for the doubly robust estimator of ATE under various sample sizes
 #' and single model misspecification options (discussed below). The confidence intervals assessed are the asymptotic confidence interval and
-#' non-parametric bootstrap confidence intervals: basic/empirical, percentile, and BCa. The first models with the BCa interval excluded reproduce the results in (paper)
-#' This function allows for parallelization, where you can specify the number of parallel tasks and number of iterations for each task.
+#' non-parametric bootstrap confidence intervals: basic/empirical, percentile, and BCa. The first 3 Scenarios with the BCa interval excluded reproduce the results in Funk et al. 2011
+#' and the remaining models are discussed in documentation by Isenberg accompanying this package. This function allows for parallelization, where you can specify the number of parallel tasks and number of iterations for each task.
 #'s
-#' @param model   A value 1-7 representing the choice of misspecification model. The models are discussed in details.
+#' @param model   A value 1-7 representing the choice of misspecification model. The models are discussed in accompanying documentation by Isenberg.
 #' @param sample  A positive integer sample size (greater than 100 recommended) for the simulated data.
 #' @param iterations The number of times that each parallel operation is run. Default is 100.
 #' @param rounds The number of parallel operations to be performed. If `round=1` as default, there will be no parallelization (not recommended, especially for `boot=TRUE`).
 #' The total number of simulations will be `iterations` times `rounds`.
-#' @param level A value between 0 and 1 which gives confidence level of the confidence interval - default is .95.
-#' @param boot If TRUE return full bootstrap table for simulated data.
-#' @param B A positive integer numbers of bootstrap samples - default is 1000.
-#' @param nc Number of cores for parallelization - default is 1. If `nc=1`, there will be no parallelization.
-#' @param W explain
+#' @param level A value between 0 and 1 which gives confidence level of the confidence interval. Default is .95.
+#' @param boot If TRUE returns full bootstrap table for simulated data. Default is FALSE.
+#' @param B A positive integer number of bootstrap samples. Default is 1000.
+#' @param nc Number of cores for parallelization. Default is 1. Specify a value `nc > 1` for parallelization.
+#' @param W IF TRUE, it allows for parallel computing on Windows computers as well. Default is FALSE, and parallelization requires
+#' the use of forking via `parallel::mcmapply()` so it will not work for Windows, but it is more efficient for running simulations on the other operating systems.
 #'
-#' @return A named vector with rows: model, sample size
+#' @return A named `double` with rows and names as in Table 3 of Funk et al. 2011. If boot=FALSE, it will only include information up to the interval using
+#' the estimator of asymptotic variance (called ACM in paper). If boot=TRUE, it will include the non-parametric bootstrap entries of the table as well as
+#' the BCa interval.
 #'
 #' @importFrom stats lm glm qnorm pnorm prop.test quantile rexp runif sd rnorm
-#' @importFrom foreach foreach
 #' @importFrom parallel mcmapply makeCluster
+#' @importFrom foreach foreach "%dopar%"
 #' @importFrom doParallel registerDoParallel
 #'
 #'
@@ -43,7 +46,7 @@ drest_ate_simsub<-function(model,sample,iterations,rounds,level,boot,B){
     #model 1 (both correct)
     xsimm<-c(1,3)
     pssim<-c(1,3)}
-  #model 2 (ps misspecified)
+  #model 2,4 (ps misspecified)
   if (model==2|model==4){
     xsimm<-c(1,3)
     pssim<-1}
@@ -185,7 +188,7 @@ set.seed(010590) #fixed output if fixed number of cores
 l<-parallel::mcmapply(drest_ate_simsub,rounds=1:rounds,MoreArgs=list(model=model,sample=sample,iterations=iterations,
                                                                            boot=boot,level=level,B=B),mc.cores=nc)}
 
-#adding a windows options
+#adding a windows options for parallelization using foreach and dopar
 if (W==TRUE){
 cl<-parallel::makeCluster(nc)
 doParallel::registerDoParallel(cl)
