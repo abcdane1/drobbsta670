@@ -3,7 +3,7 @@
 #' This function provides a doubly robust point estimate and confidence interval for the average treatment effect (ATE) with binary treatment. The outcome models are assumed to be linear, where
 #' the outcome for those under treatment 1 and the outcome for those under treatment 0 are regressed against user specified subsets of non-treatment covariates. The propensity score is modeled using logistic regression,
 #' where treatment status is regressed against a subset of non-treatment user-specified covariates. For confidence intervals, the user has the option to specify whether they wish to have the asymptotic interval (default),
-#' or non-parametric bootstrap intervals, which include the basic/empirical, percentile, and bias corrected and accelerated (BCa) intervals. The asymptotic interval is computed using the estimator for the asymptotic normal distribution of
+#' or non-parametric bootstrap intervals, which include the basic/empirical, percentile, and bias-corrected and accelerated (BCa) intervals. The asymptotic interval is computed using the estimator for the asymptotic normal distribution of
 #' the doubly robust estimator as defined in Lunceford et al. 2004.
 #'
 #' @param trt  A vector of binary treatments.
