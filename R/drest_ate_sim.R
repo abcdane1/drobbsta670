@@ -19,8 +19,8 @@
 #' @return A named vector with rows: model, sample size
 #'
 #' @importFrom stats lm glm qnorm pnorm prop.test quantile rexp runif sd rnorm
-#' @importFrom parallel mcmapply
 #' @importFrom foreach foreach
+#' @importFrom parallel mcmapply makeCluster
 #' @importFrom doParallel registerDoParallel
 #'
 #'
@@ -187,7 +187,8 @@ l<-parallel::mcmapply(drest_ate_simsub,rounds=1:rounds,MoreArgs=list(model=model
 
 #adding a windows options
 if (W==TRUE){
-doParallel::registerDoParallel(cores=nc)
+cl<-parallel::makeCluster(nc)
+doParallel::registerDoParallel(cl)
 l<-foreach::foreach(i=1:rounds, .combine = "cbind") %dopar% drest_ate_simsub(model=model,sample=sample,iterations=iterations,rounds=1,
                                                       boot=boot,level=level,B=B)}
 
